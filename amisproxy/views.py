@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-
 class AmisProxyAPIView(APIView):
     """
     通用 amis 请求代理视图（适配 djangorestframework 接口）
