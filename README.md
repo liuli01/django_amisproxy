@@ -23,9 +23,19 @@ Quick start
         "django-amisproxy",
     ]
 
-``django-rest-admin``的服务地址
-API_PROXY_TARGET = 'http://localhost:8000/api/'
+2. 设置Drf分页查询
+```
+REST_FRAMEWORK = {
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ]
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 
+    'PAGE_SIZE': 10, # 每页显示个数
+}
 
+# ``django-rest-admin``的服务地址
+API_PROXY_TARGET = 'http://localhost:8000/api/'
+```
 2. Include the django-amisproxy URLconf in your project urls.py like this::
 
     path('amis-api/', include('amisproxy.urls')),
