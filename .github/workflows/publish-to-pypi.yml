@@ -1,0 +1,43 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'  # 只有打 tag 的时候才触发，比如 v0.1.0
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    name: Build and Publish to PyPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build release distributions
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine pytest flake8
+          python -m build
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+
+      # Step 7: 发布到 PyPI,仅当触发事件是标签时执行
+      - name: Publish to PyPI
+        if: github.ref_type == 'tag'  
+        env:
+          TWINE_USERNAME: __token__  # 固定用户名，表示使用 API Token
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          python -m twine upload dist/*

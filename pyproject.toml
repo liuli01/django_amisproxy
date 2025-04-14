@@ -1,0 +1,21 @@
+[project]
+name = "django-amisproxy"
+version = "0.1.0"
+description = "Add your description here"
+license = { file = "LICENSE" }
+authors = [{ name = "liuli", email = "525334480@qq.com" }]
+maintainers = [{ name = "liuli", email = "525334480@qq.com" }]
+
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2",
+    "djangorestframework>=3.16.0",
+    "requests>=2.32.3",
+]
+
+[project.urls]
+homepage = "https://github.com/liuli01/django_amisproxy"
+documentation = "https://github.com/liuli01/django_amisproxy"
+repository = "https://github.com/liuli01/django_amisproxy"
+changelog = "https://github.com/liuli01/django_amisproxy/releases"
