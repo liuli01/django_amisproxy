@@ -24,24 +24,44 @@ class AmisProxyAPIView(APIView):
         target_url = api_base.rstrip('/') + '/' + path.lstrip('/')
 
         headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
-        data = request.data if method in ['post', 'put', 'patch'] else None
-        params = request.query_params if method == 'get' else None
+
+
+
+        # 参数处理
+        params = request.query_params.copy() if method == 'get' else None
+        # 自动搜索参数转换：?title=xxx -> ?search=xxx
+        if params and 'search' not in params:
+            search_keys = ['title', 'name', 'keyword']
+            search_parts = [params.get(k) for k in search_keys if params.get(k)]
+            if search_parts:
+                params['search'] = ' '.join(search_parts)
+                for k in search_keys:
+                    params.pop(k, None)
+        
+           # 请求体处理（兼容 JSON 与 multipart 表单）
+        if method in ['post', 'put', 'patch']:
+            if request.content_type and request.content_type.startswith('multipart/form-data'):
+                req_kwargs = {'files': request.FILES, 'data': request.data}
+            else:
+                req_kwargs = {'json': request.data}
+        else:
+            req_kwargs = {}
 
         try:
             response = requests.request(
                 method=method,
                 url=target_url,
                 headers=headers,
-                json=data,
                 params=params,
                 timeout=10,
+                **req_kwargs
             )
 
             try:
                 result = response.json()
             except Exception:
                 return Response({'status': 1, 'msg': '非 JSON 响应'}, status=response.status_code)
-
+            
             # 分页结构处理
             if isinstance(result, dict) and 'results' in result and 'count' in result:
                 return Response({
