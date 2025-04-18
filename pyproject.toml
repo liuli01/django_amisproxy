@@ -1,6 +1,6 @@
 [project]
 name = "django-amisproxy"
-version = "0.1.0"
+version = "0.2.0"
 description = "Add your description here"
 license = { file = "LICENSE" }
 authors = [{ name = "liuli", email = "525334480@qq.com" }]
