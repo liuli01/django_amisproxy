@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+
 class AmisProxyAPIView(APIView):
     """
     通用 amis 请求代理视图（适配 djangorestframework 接口）
@@ -25,10 +26,9 @@ class AmisProxyAPIView(APIView):
 
         headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
-
-
         # 参数处理
         params = request.query_params.copy() if method == 'get' else None
+
         # 自动搜索参数转换：?title=xxx -> ?search=xxx
         if params and 'search' not in params:
             search_keys = ['title', 'name', 'keyword']
@@ -37,8 +37,24 @@ class AmisProxyAPIView(APIView):
                 params['search'] = ' '.join(search_parts)
                 for k in search_keys:
                     params.pop(k, None)
-        
-           # 请求体处理（兼容 JSON 与 multipart 表单）
+
+        # 分页参数转换（支持 PageNumberPagination 和 LimitOffsetPagination）
+        if params:
+            if 'perPage' in params:
+                try:
+                    per_page = int(params['perPage'])
+                    page = int(params.get('page', 1))
+                    # PageNumberPagination
+                    params['page_size'] = per_page
+                    # LimitOffsetPagination
+                    params['limit'] = per_page
+                    params['offset'] = (page - 1) * per_page
+                except ValueError:
+                    pass  # 忽略非法分页参数
+                params.pop('perPage', None)
+                params.pop('page', None)
+
+        # 请求体处理（兼容 JSON 与 multipart 表单）
         if method in ['post', 'put', 'patch']:
             if request.content_type and request.content_type.startswith('multipart/form-data'):
                 req_kwargs = {'files': request.FILES, 'data': request.data}
@@ -61,7 +77,7 @@ class AmisProxyAPIView(APIView):
                 result = response.json()
             except Exception:
                 return Response({'status': 1, 'msg': '非 JSON 响应'}, status=response.status_code)
-            
+
             # 分页结构处理
             if isinstance(result, dict) and 'results' in result and 'count' in result:
                 return Response({
@@ -84,6 +100,7 @@ class AmisProxyAPIView(APIView):
 
         except requests.RequestException as e:
             return Response({'status': 1, 'msg': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
     def handle_batch_delete(self, path, request):
         """
         POST /amis-api/<model>/batch-delete/
@@ -137,6 +154,7 @@ class AmisProxyAPIView(APIView):
             'msg': '批量删除完成',
             'data': results
         })
+
     # 映射 HTTP 方法
     def get(self, request, path=''):
         return self.forward('get', path, request)
