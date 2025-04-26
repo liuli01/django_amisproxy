@@ -9,14 +9,11 @@ django-amisproxy 将django_rest_admin自动生成的drf标准api接口转换成a
 
 INSTALLED_APPS = [ ..., "amisproxy", ]
 
-2. 必须设置Drf分页查询
+2. 必须设置Drf分页查询,LimitOffsetPagination风格
 ```
 REST_FRAMEWORK = {
-    "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser",
-    ]
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', 
-    'PAGE_SIZE': 10, # 每页显示个数
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 30
 }
 
 API_PROXY_TARGET = 'http://localhost:8000/api/'
@@ -33,5 +30,9 @@ manage.py migrate
 5. 登录django管理 /admin 完成数据配置
 ```
 /amis-api/ 替换 django-rest-admin的服务地址/api/进行访问
+
+最终代理转发效果
+GET /amis-api/YourModel/?page=2&perPage=50
+GET /api/YourModel/?page=2&page_size=50&limit=50&offset=50
 ```
 
